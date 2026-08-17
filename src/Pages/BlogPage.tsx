@@ -10,13 +10,11 @@ export default function BlogPage() {
         </div>
       </div>
       <main className="flex flex-col items-center">
-        <PencilRuler className="mt-3 h-8 w-8 select-none" />
-        <div className="mt-3 w-full max-w-xl text-center text-xl select-none">
-          W.I.P.
-        </div>
-        <div className="mt-3 w-full max-w-xl text-center text-sm text-slate-500 select-none dark:text-slate-500">
+        <PencilRuler className="mt-3 h-8 w-8" />
+        <h1 className="mt-3 w-full max-w-xl text-center text-xl">W.I.P.</h1>
+        <p className="mt-3 w-full max-w-xl text-center text-sm text-slate-500">
           Blog Page Coming Soon
-        </div>
+        </p>
       </main>
     </div>
   );

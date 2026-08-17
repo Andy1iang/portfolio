@@ -6,13 +6,13 @@ export default function NotFoundPage() {
     <div className="grid min-h-dvh grid-rows-[42dvh_minmax(0,1fr)] px-4">
       <div className="flex items-end justify-center"></div>
       <main className="flex flex-col items-center">
-        <Sailboat className="mt-3 h-8 w-8 select-none" />
-        <div className="mt-3 w-full max-w-xl text-center text-xl select-none">
+        <Sailboat className="mt-3 h-8 w-8" />
+        <p className="mt-3 w-full max-w-xl text-center text-xl">
           Hey matey, ye sailed off course!
-        </div>
+        </p>
         <Link
           to="/"
-          className="mt-4 rounded-md border-2 border-slate-300 px-4 py-2 text-sm transition-colors duration-700 select-none hover:border-amber-500 hover:text-amber-600 dark:border-stone-600"
+          className="mt-4 rounded-md border-2 border-slate-300 px-4 py-2 text-sm font-medium transition-colors duration-700 hover:border-amber-500 hover:text-amber-600 dark:border-stone-600"
         >
           Return to shore
         </Link>
