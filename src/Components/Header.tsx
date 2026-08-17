@@ -7,19 +7,19 @@ export default function Header() {
       <nav className="flex items-center justify-end gap-3 text-sm selection:bg-amber-100 selection:text-amber-500">
         <Link
           to="/"
-          className="text-slate-700 transition-colors duration-700 hover:text-amber-600 dark:text-slate-200 dark:hover:text-amber-600"
+          className="text-slate-700 transition-colors duration-700 hover:text-amber-600 dark:text-slate-200"
         >
           Home
         </Link>
         <Link
           to="/projects"
-          className="text-slate-700 transition-colors duration-700 hover:text-amber-600 dark:text-slate-200 dark:hover:text-amber-600"
+          className="text-slate-700 transition-colors duration-700 hover:text-amber-600 dark:text-slate-200"
         >
           Projects
         </Link>
         <Link
           to="/blog"
-          className="text-slate-700 transition-colors duration-700 hover:text-amber-600 dark:text-slate-200 dark:hover:text-amber-600"
+          className="text-slate-700 transition-colors duration-700 hover:text-amber-600 dark:text-slate-200"
         >
           Blog
         </Link>

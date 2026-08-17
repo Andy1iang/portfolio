@@ -22,7 +22,7 @@ export default function DarkModeButton() {
     <button
       type="button"
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className="relative h-4 w-4 cursor-pointer text-slate-700 transition-colors duration-700 hover:text-amber-600 dark:text-slate-200 dark:hover:text-amber-600"
+      className="relative h-4 w-4 cursor-pointer text-slate-700 transition-colors duration-700 hover:text-amber-600 dark:text-slate-200"
       onClick={handleDarkModeButtonClick}
     >
       <Lightbulb

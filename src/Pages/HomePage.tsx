@@ -43,56 +43,51 @@ export default function HomePage() {
               </p>
             </div>
 
-            <hr className="mt-3 rounded-full border-black/10 dark:border-white/10" />
+            <hr className="mt-3 rounded-full border-black/10 transition-colors duration-700 dark:border-white/10" />
             <footer className="mt-3 flex justify-start gap-1 text-sm">
-              <div className="transition-colors duration-700 hover:text-amber-600">
-                <a
-                  href="https://www.linkedin.com/in/yanhang-liang/"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Linkedin
-                </a>
-              </div>
+              <a
+                href="https://www.linkedin.com/in/yanhang-liang/"
+                target="_blank"
+                rel="noreferrer"
+                className="text-slate-700 transition-colors duration-700 hover:text-amber-600 dark:text-slate-200"
+              >
+                Linkedin
+              </a>
               ❘
-              <div className="transition-colors duration-700 hover:text-amber-600">
-                <a
-                  href="https://github.com/andy1iang"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Github
-                </a>
-              </div>
-              <div className="ml-auto transition-colors duration-700 hover:text-amber-600">
-                <a
-                  href="https://letterboxd.com/DonLotto/"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Letterboxd
-                </a>
-              </div>
+              <a
+                href="https://github.com/andy1iang"
+                target="_blank"
+                rel="noreferrer"
+                className="text-slate-700 transition-colors duration-700 hover:text-amber-600 dark:text-slate-200"
+              >
+                Github
+              </a>
+              <a
+                href="https://letterboxd.com/DonLotto/"
+                target="_blank"
+                rel="noreferrer"
+                className="ml-auto text-slate-700 transition-colors duration-700 hover:text-amber-600 dark:text-slate-200"
+              >
+                Letterboxd
+              </a>
               ❘
-              <div className="transition-colors duration-700 hover:text-amber-600">
-                <a
-                  href="https://www.goodreads.com/user/show/184664624-andy"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Goodreads
-                </a>
-              </div>
+              <a
+                href="https://www.goodreads.com/user/show/184664624-andy"
+                target="_blank"
+                rel="noreferrer"
+                className="text-slate-700 transition-colors duration-700 hover:text-amber-600 dark:text-slate-200"
+              >
+                Goodreads
+              </a>
               ❘
-              <div className="transition-colors duration-700 hover:text-amber-600">
-                <a
-                  href="https://boardgamegeek.com/profile/DonLotto/"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  BGG
-                </a>
-              </div>
+              <a
+                href="https://boardgamegeek.com/profile/DonLotto/"
+                target="_blank"
+                rel="noreferrer"
+                className="text-slate-700 transition-colors duration-700 hover:text-amber-600 dark:text-slate-200"
+              >
+                BGG
+              </a>
             </footer>
           </div>
         </main>
