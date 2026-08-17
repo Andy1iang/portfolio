@@ -1,5 +1,6 @@
 @import "@fontsource/source-serif-4";
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   * {

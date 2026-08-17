@@ -1,43 +1,32 @@
-import { Link } from "react-router-dom";
-import { Settings } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import avatar from "../assets/p1.jpg";
-
-// TODO: Dark Mode + Dark Mode Toggle Button from Settings (FramerMotion)
-// TODO: Actually about me content (typing animation for interests)
+import Header from "../Components/Header";
 
 export default function HomePage() {
   const [isImageOpen, setIsImageOpen] = useState(false);
+  const greeting = useMemo(() => getTimeBasedGreeting(new Date()), []);
 
   return (
     <>
-      <div className="flex min-h-screen flex-col items-center justify-center p-4">
-        <div className="flex max-w-xl flex-col text-left selection:bg-amber-100 selection:text-amber-500">
-          {/* everything should be below here */}
-
-          {/* top nav bar */}
-          <div className="text-md">
-            <nav className="mb-8 flex items-center justify-end gap-3">
-              <div className="transition-colors duration-700 hover:text-amber-600">
-                <Link to="/projects">Projects</Link>
-              </div>
-              <div className="transition-colors duration-700 hover:text-amber-600">
-                <Link to="/blog">Blog</Link>
-              </div>
-              <Settings className="h-4 w-4 transition-colors duration-700 hover:text-amber-600" />
-            </nav>
+      <div className="grid min-h-dvh grid-rows-[42dvh_minmax(0,1fr)] px-4">
+        <div className="flex items-end justify-center">
+          <div className="w-full max-w-xl pb-4">
+          <Header />
           </div>
+        </div>
 
+        <main className="flex justify-center">
+          <div className="w-full max-w-xl text-left selection:bg-amber-100 selection:text-amber-500">
           {/* body content */}
           {/* avatar */}
 
-          <div className="text-lg">
+          <div className="text-base">
             <div className="flex items-center gap-4">
               <motion.img
                 src={avatar}
                 layoutId="avatar"
-                className={`h-16 w-16 cursor-pointer rounded-full object-cover ${
+                className={`h-16 w-16 cursor-pointer rounded-full object-cover select-none ${
                   isImageOpen ? "opacity-0" : "opacity-100"
                 }`}
                 onClick={() => setIsImageOpen(true)}
@@ -47,66 +36,72 @@ export default function HomePage() {
                   damping: 25,
                 }}
               />
-              <p className="font-['Source_Serif_4',serif] text-xl font-semibold">
+              <p className="font-['Source_Serif_4',serif] text-lg font-semibold">
                 Andy Liang
               </p>
             </div>
             <div className="mt-4 hyphens-auto">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-              eiusmod tempor incididunt ut labore et dolore magna aliqua.
+              {greeting}! Poke around and see if anything here interests you.
+              Feel free to reach out for any reason.
             </div>
           </div>
 
           {/* footer */}
-          <hr className="mt-3 rounded-full border-black/10 dark:border-white/10" />
-          <div className="mt-3 flex justify-start gap-1 text-sm">
-            <a
-              href="https://www.linkedin.com/in/yanhang-liang/"
-              target="_blank"
-              rel="noreferrer"
-              className="transition-colors duration-700 hover:text-amber-600"
-            >
-              Linkedin
-            </a>
+          <hr className="mt-3 rounded-full border-black/10 *:transition-colors *:duration-700 dark:border-white/10" />
+          <div className="mt-3 flex justify-start gap-1 text-sm *:transition-colors *:duration-700">
+            <div className="transition-colors duration-700 hover:text-amber-600">
+              <a
+                href="https://www.linkedin.com/in/yanhang-liang/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Linkedin
+              </a>
+            </div>
             ❘
-            <a
-              href="https://github.com/andy1iang"
-              target="_blank"
-              rel="noreferrer"
-              className="transition-colors duration-700 hover:text-amber-600"
-            >
-              Github
-            </a>
-            <a
-              href="https://letterboxd.com/DonLotto/"
-              target="_blank"
-              rel="noreferrer"
-              className="ml-auto transition-colors duration-700 hover:text-amber-600"
-            >
-              Letterboxd
-            </a>
+            <div className="transition-colors duration-700 hover:text-amber-600">
+              <a
+                href="https://github.com/andy1iang"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Github
+              </a>
+            </div>
+            <div className="ml-auto transition-colors duration-700 hover:text-amber-600">
+              <a
+                href="https://letterboxd.com/DonLotto/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Letterboxd
+              </a>
+            </div>
             ❘
-            <a
-              href="https://www.goodreads.com/user/show/184664624-andy"
-              target="_blank"
-              rel="noreferrer"
-              className="transition-colors duration-700 hover:text-amber-600"
-            >
-              Goodreads
-            </a>
+            <div className="transition-colors duration-700 hover:text-amber-600">
+              <a
+                href="https://www.goodreads.com/user/show/184664624-andy"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Goodreads
+              </a>
+            </div>
             ❘
-            <a
-              href="https://boardgamegeek.com/profile/DonLotto/"
-              target="_blank"
-              rel="noreferrer"
-              className="transition-colors duration-700 hover:text-amber-600"
-            >
-              BGG
-            </a>
+            <div className="transition-colors duration-700 hover:text-amber-600">
+              <a
+                href="https://boardgamegeek.com/profile/DonLotto/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                BGG
+              </a>
+            </div>
           </div>
-          {/* everything should be above here */}
-        </div>
+          </div>
+        </main>
       </div>
+
       {/* Image Modal - Place it here, outside the main content */}
       <>
         {/* Avatar thumbnail */}
@@ -139,4 +134,22 @@ export default function HomePage() {
       </>
     </>
   );
+}
+
+function getTimeBasedGreeting(date: Date): string {
+  try {
+    const hour = date.getHours();
+
+    if (Number.isNaN(hour)) {
+      return "Hello";
+    }
+
+    if (hour < 5) return "Hey night owl";
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    if (hour < 23) return "Good evening";
+    return "Hello";
+  } catch {
+    return "Hello";
+  }
 }

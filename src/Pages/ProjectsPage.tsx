@@ -1,7 +1,7 @@
 import Header from "../Components/Header";
 import { PencilRuler } from "lucide-react";
 
-export default function BlogPage() {
+export default function ProjectsPage() {
   return (
     <div className="grid min-h-dvh grid-rows-[42dvh_minmax(0,1fr)] px-4">
       <div className="flex items-end justify-center">
@@ -15,7 +15,7 @@ export default function BlogPage() {
           W.I.P.
         </div>
         <div className="mt-3 w-full max-w-xl text-center text-sm text-slate-500 select-none dark:text-slate-500">
-          Blog Page Coming Soon
+          Project Page Coming Soon
         </div>
       </main>
     </div>
