@@ -89,6 +89,25 @@ export default function HomePage() {
                 BGG
               </a>
             </footer>
+
+            <blockquote className="mt-8 border-l-2 border-slate-300 bg-slate-100 py-2 pl-4 text-xs text-slate-500 italic transition-colors duration-700 dark:border-stone-600 dark:bg-stone-800 dark:text-slate-400">
+              <p>
+                I am the master of my fate,
+                <br />
+                &emsp;I am the captain of my soul.
+              </p>
+              <cite className="mt-2 block text-xs not-italic">
+                — From William Ernest Henley's{" "}
+                <a
+                  href="https://www.poetryfoundation.org/poems/57260/invictus"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-slate-700 italic underline transition-colors duration-700 hover:text-amber-600 dark:text-slate-200"
+                >
+                  Invictus
+                </a>
+              </cite>
+            </blockquote>
           </div>
         </main>
       </div>
