@@ -113,7 +113,7 @@ export default function HomePage() {
             <motion.img
               src={avatar}
               layoutId="avatar"
-              className="max-h-[55vh] max-w-[55vw] rounded-full object-cover"
+              className="max-h-[55vh] max-w-[55vw] rounded-full object-cover select-none"
               onClick={(e) => e.stopPropagation()}
               transition={{
                 type: "spring",

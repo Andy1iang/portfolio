@@ -10,6 +10,11 @@ export default function DarkModeButton() {
     const root = document.documentElement;
     const nextIsDark = !root.classList.contains("dark");
     root.classList.toggle("dark", nextIsDark);
+    try {
+      localStorage.setItem("theme", nextIsDark ? "dark" : "light");
+    } catch {
+      // The theme still changes for the current page without browser storage.
+    }
     setIsDark(nextIsDark);
   }
 
@@ -17,18 +22,18 @@ export default function DarkModeButton() {
     <button
       type="button"
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className="relative h-4 w-4 cursor-pointer hover:text-amber-600"
+      className="relative h-4 w-4 cursor-pointer text-slate-700 transition-colors duration-700 hover:text-amber-600 dark:text-slate-200 dark:hover:text-amber-600"
       onClick={handleDarkModeButtonClick}
     >
       <Lightbulb
-        className={`absolute inset-0 h-4 w-4 transition-all duration-700 ${
+        className={`absolute inset-0 h-4 w-4 transition-[scale,rotate,opacity] duration-700 ${
           isDark
             ? "scale-75 rotate-90 opacity-0"
             : "scale-100 rotate-0 opacity-100"
         }`}
       />
       <LightbulbOff
-        className={`absolute inset-0 h-4 w-4 transition-all duration-700 ${
+        className={`absolute inset-0 h-4 w-4 transition-[scale,rotate,opacity] duration-700 ${
           isDark
             ? "scale-100 rotate-0 opacity-100"
             : "scale-75 -rotate-90 opacity-0"

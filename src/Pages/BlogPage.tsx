@@ -9,7 +9,7 @@ export default function BlogPage() {
           <Header />
         </div>
       </div>
-      <main className="flex flex-col items-center">
+      <main className="flex flex-col items-center select-none">
         <PencilRuler className="mt-3 h-8 w-8" />
         <h1 className="mt-3 w-full max-w-xl text-center text-xl">W.I.P.</h1>
         <p className="mt-3 w-full max-w-xl text-center text-sm text-slate-500">

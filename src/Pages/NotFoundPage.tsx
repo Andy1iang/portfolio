@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 export default function NotFoundPage() {
   return (
-    <div className="grid min-h-dvh grid-rows-[42dvh_minmax(0,1fr)] px-4">
+    <div className="grid min-h-dvh grid-rows-[42dvh_minmax(0,1fr)] px-4 select-none">
       <div className="flex items-end justify-center"></div>
       <main className="flex flex-col items-center">
         <Sailboat className="mt-3 h-8 w-8" />
