@@ -99,10 +99,10 @@ export default function HomePage() {
               <cite className="mt-2 block text-xs not-italic">
                 — From William Ernest Henley's{" "}
                 <a
-                  href="https://www.poetryfoundation.org/poems/57260/invictus"
+                  href="https://www.poetryfoundation.org/poems/51642/invictus"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-slate-700 italic underline transition-colors duration-700 hover:text-amber-600 dark:text-slate-200"
+                  className="text-slate-500 italic underline transition-colors duration-700 hover:text-amber-600 dark:text-slate-400"
                 >
                   Invictus
                 </a>
