@@ -153,7 +153,7 @@ function getTimeBasedGreeting(date: Date): string {
     if (hour < 5) return "Hey night owl";
     if (hour < 12) return "Good morning";
     if (hour < 18) return "Good afternoon";
-    if (hour < 23) return "Good evening";
+    if (hour < 24) return "Good evening";
     return "Hello";
   } catch {
     return "Hello";
