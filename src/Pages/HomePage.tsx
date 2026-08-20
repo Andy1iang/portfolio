@@ -9,7 +9,7 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="grid min-h-dvh grid-rows-[42dvh_minmax(0,1fr)] px-4">
+      <div className="grid min-h-dvh grid-rows-[33dvh_minmax(0,1fr)] px-4">
         <div className="flex items-end justify-center">
           <div className="w-full max-w-xl pb-4">
             <Header />
