@@ -90,7 +90,7 @@ export default function HomePage() {
               </a>
             </footer>
 
-            <blockquote className="mt-8 border-l-2 border-slate-300 bg-slate-100 py-2 pl-4 text-xs text-slate-500 italic transition-colors duration-700 dark:border-stone-600 dark:bg-stone-800 dark:text-slate-400">
+            <blockquote className="mt-8 border-l-2 border-slate-300 bg-slate-100/55 py-2 pl-4 text-xs text-slate-500 italic transition-colors duration-700 dark:border-stone-600 dark:bg-stone-800/50 dark:text-slate-400">
               <p>
                 I am the master of my fate,
                 <br />
