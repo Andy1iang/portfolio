@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "backdrop:chunks": "node scripts/generate-backdrop-chunks.mjs",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

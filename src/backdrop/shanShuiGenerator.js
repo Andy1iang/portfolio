@@ -1,5 +1,7 @@
 /* Extracted from the standalone Shan Shui source into an instance-scoped factory. */
 
+import { shanShuiConfig } from "./config.js";
+
 export function createShanShuiGenerator({ seed = "portfolio-demo" } = {}) {
   const Math = Object.create(globalThis.Math);
   var reso, vtxlist0, vtxlist1, vtxlist;
@@ -3928,7 +3930,7 @@ export function createShanShuiGenerator({ seed = "portfolio-demo" } = {}) {
     chunks: [],
     xmin: 0,
     xmax: 0,
-    cwid: 512,
+    cwid: shanShuiConfig.chunkWidth,
     cursx: 0,
     lasttick: 0,
     windx: 3000,

@@ -1,12 +1,10 @@
 import { lightPalette } from "./palette.js";
 import { createShanShuiGenerator } from "./shanShuiGenerator.js";
+import { shanShuiConfig } from "./config.js";
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
-const LOGICAL_HEIGHT = 800 / 1.142;
 const DEFAULT_AHEAD_TILES = 1;
 const DEFAULT_BEHIND_TILES = 1;
-const TILE_GUTTER = 32;
-const GENERATOR_BUFFER = 1536;
 
 export class ShanShuiBackdrop {
   #aheadTiles;
@@ -14,6 +12,7 @@ export class ShanShuiBackdrop {
   #behindTiles;
   #canvas;
   #context;
+  #currentSpeed = 0;
   #cursor = 0;
   #destroyed = false;
   #devicePixelRatio = 1;
@@ -21,17 +20,23 @@ export class ShanShuiBackdrop {
   #generationPending = false;
   #idleCallback;
   #lastPlannedTile;
+  #lastPlannedVisibleTile;
   #mount;
+  #motionReady = false;
+  #onInitialFrameReady;
+  #rampElapsed = 0;
+  #rampFromSpeed = 0;
   #palette;
   #previousTime;
-  #rasterRevision = 0;
+  #tilesReady = false;
   #resizeObserver;
   #resizeTimer;
+  #savedChunks;
   #size = { width: 1, height: 1 };
   #speed;
   #started = false;
   #tiles = new Map();
-  #visibleWidth = LOGICAL_HEIGHT;
+  #visibleWidth = shanShuiConfig.logicalHeight;
 
   constructor(
     mount,
@@ -42,6 +47,8 @@ export class ShanShuiBackdrop {
       behindTiles = DEFAULT_BEHIND_TILES,
       maxPixelRatio = 1.5,
       palette = lightPalette,
+      savedChunks,
+      onInitialFrameReady,
     } = {},
   ) {
     if (!(mount instanceof HTMLElement)) {
@@ -53,6 +60,8 @@ export class ShanShuiBackdrop {
     this.#aheadTiles = Math.max(1, Math.floor(aheadTiles));
     this.#behindTiles = Math.max(0, Math.floor(behindTiles));
     this.#palette = palette;
+    this.#savedChunks = savedChunks;
+    this.#onInitialFrameReady = onInitialFrameReady;
     this.#devicePixelRatio = Math.min(
       Math.max(window.devicePixelRatio || 1, 1),
       Math.max(maxPixelRatio, 1),
@@ -75,6 +84,7 @@ export class ShanShuiBackdrop {
     this.#canvas.style.display = "block";
     this.#canvas.style.width = "100%";
     this.#canvas.style.height = "100%";
+    this.#canvas.style.opacity = "0";
     this.#canvas.style.pointerEvents = "none";
     this.#mount.replaceChildren(this.#canvas);
 
@@ -87,15 +97,8 @@ export class ShanShuiBackdrop {
       this.#resizeTimer = window.setTimeout(() => {
         if (this.#destroyed) return;
 
-        const previousRasterHeight = this.#canvas.height;
         this.#measure();
         this.#resizeCanvas();
-
-        if (this.#canvas.height !== previousRasterHeight) {
-          this.#rasterRevision += 1;
-          this.#discardAllTiles();
-        }
-
         this.#refreshTilePlan(true);
       }, 150);
     });
@@ -110,6 +113,9 @@ export class ShanShuiBackdrop {
     }
 
     this.#speed = speed;
+    this.#rampFromSpeed = this.#currentSpeed;
+    this.#rampElapsed = 0;
+    if (speed === 0) this.#currentSpeed = 0;
     this.#previousTime = undefined;
   }
 
@@ -132,13 +138,18 @@ export class ShanShuiBackdrop {
     const elapsedSeconds = Math.min((time - this.#previousTime) / 1000, 0.1);
     this.#previousTime = time;
 
-    if (!document.hidden && this.#speed !== 0) {
-      this.#cursor += this.#speed * elapsedSeconds;
-      this.#draw();
-
-      const currentTile = Math.floor(this.#cursor / this.#generator.chunkWidth);
-      if (currentTile !== this.#lastPlannedTile) {
+    if (this.#motionReady && !document.hidden && this.#speed !== 0) {
+      this.#advanceMotionRamp(elapsedSeconds);
+      const nextCursor = this.#cursor + this.#currentSpeed * elapsedSeconds;
+      if (this.#hasVisibleCoverage(nextCursor)) {
+        this.#cursor = nextCursor;
+        this.#draw();
         this.#refreshTilePlan();
+      } else {
+        this.#currentSpeed = 0;
+        this.#rampFromSpeed = 0;
+        this.#rampElapsed = 0;
+        this.#refreshTilePlan(true);
       }
     }
 
@@ -152,7 +163,7 @@ export class ShanShuiBackdrop {
       height: Math.max(Math.round(height), 1),
     };
     this.#visibleWidth =
-      LOGICAL_HEIGHT * (this.#size.width / this.#size.height);
+      shanShuiConfig.logicalHeight * (this.#size.width / this.#size.height);
   }
 
   #resizeCanvas() {
@@ -163,7 +174,7 @@ export class ShanShuiBackdrop {
 
   #draw() {
     const context = this.#context;
-    const scale = this.#size.height / LOGICAL_HEIGHT;
+    const scale = this.#size.height / shanShuiConfig.logicalHeight;
 
     context.save();
     context.setTransform(
@@ -210,16 +221,19 @@ export class ShanShuiBackdrop {
     );
 
     const planChanged = firstVisibleTile !== this.#lastPlannedTile;
-    if (!force && !planChanged) return;
+    const visibleRangeChanged =
+      lastVisibleTile !== this.#lastPlannedVisibleTile;
+    if (!force && !planChanged && !visibleRangeChanged) return;
     this.#lastPlannedTile = firstVisibleTile;
+    this.#lastPlannedVisibleTile = lastVisibleTile;
 
     const keepFrom = Math.max(0, firstVisibleTile - this.#behindTiles);
     const keepThrough = lastVisibleTile + this.#aheadTiles;
 
-    if (planChanged) {
+    if (planChanged || visibleRangeChanged) {
       this.#generator.discardOutside(
-        keepFrom * chunkWidth - GENERATOR_BUFFER,
-        (keepThrough + 1) * chunkWidth + GENERATOR_BUFFER,
+        keepFrom * chunkWidth - shanShuiConfig.generatorBuffer,
+        (keepThrough + 1) * chunkWidth + shanShuiConfig.generatorBuffer,
       );
     }
 
@@ -241,6 +255,27 @@ export class ShanShuiBackdrop {
   #scheduleNextTile(keepFrom, keepThrough, firstVisibleTile, lastVisibleTile) {
     if (this.#generationPending || this.#destroyed) return;
 
+    if (!this.#tilesReady) {
+      const visibleIndexes = [];
+      const initialThrough = Math.min(lastVisibleTile + 1, keepThrough);
+      for (let index = firstVisibleTile; index <= initialThrough; index += 1) {
+        if (!this.#tiles.has(index)) visibleIndexes.push(index);
+      }
+
+      if (visibleIndexes.length > 0) {
+        this.#scheduleInitialTiles(
+          visibleIndexes,
+          keepFrom,
+          keepThrough,
+          firstVisibleTile,
+          lastVisibleTile,
+        );
+        return;
+      }
+
+      this.#revealInitialFrame();
+    }
+
     const priority = [];
     for (let index = firstVisibleTile; index <= lastVisibleTile; index += 1) {
       priority.push(index);
@@ -256,13 +291,12 @@ export class ShanShuiBackdrop {
     if (nextIndex === undefined) return;
 
     this.#generationPending = true;
-    const rasterRevision = this.#rasterRevision;
     const generate = async () => {
       this.#idleCallback = undefined;
 
       try {
-        const tile = await this.#generateTile(nextIndex);
-        if (this.#destroyed || rasterRevision !== this.#rasterRevision) {
+        const tile = await this.#loadTile(nextIndex);
+        if (this.#destroyed) {
           tile.image.close?.();
           return;
         }
@@ -275,7 +309,9 @@ export class ShanShuiBackdrop {
       }
     };
 
-    if ("requestIdleCallback" in window) {
+    if (this.#hasSavedChunk(nextIndex)) {
+      void generate();
+    } else if ("requestIdleCallback" in window) {
       this.#idleCallback = window.requestIdleCallback(generate, {
         timeout: 1200,
       });
@@ -284,14 +320,147 @@ export class ShanShuiBackdrop {
     }
   }
 
+  #scheduleInitialTiles(
+    visibleIndexes,
+    keepFrom,
+    keepThrough,
+    firstVisibleTile,
+    lastVisibleTile,
+  ) {
+    this.#generationPending = true;
+    const generate = async () => {
+      this.#idleCallback = undefined;
+
+      try {
+        const tiles = await Promise.all(
+          visibleIndexes.map(async (index) => ({
+            index,
+            tile: await this.#loadTile(index),
+          })),
+        );
+
+        if (this.#destroyed) {
+          for (const { tile } of tiles) tile.image.close?.();
+          return;
+        }
+
+        for (const { index, tile } of tiles) this.#tiles.set(index, tile);
+        this.#draw();
+        this.#revealInitialFrame();
+      } finally {
+        this.#generationPending = false;
+        if (!this.#destroyed) {
+          this.#scheduleNextTile(
+            keepFrom,
+            keepThrough,
+            firstVisibleTile,
+            lastVisibleTile,
+          );
+        }
+      }
+    };
+
+    if ("requestIdleCallback" in window) {
+      this.#idleCallback = window.requestIdleCallback(generate, {
+        timeout: 100,
+      });
+    } else {
+      this.#idleCallback = window.setTimeout(generate, 0);
+    }
+  }
+
+  #revealInitialFrame() {
+    if (this.#tilesReady) return;
+
+    this.#tilesReady = true;
+    this.#currentSpeed = 0;
+    this.#rampFromSpeed = 0;
+    this.#rampElapsed = 0;
+    this.#previousTime = undefined;
+    window.requestAnimationFrame(() => {
+      if (this.#destroyed) return;
+
+      this.#canvas.style.opacity = "1";
+      this.#onInitialFrameReady?.();
+      window.requestAnimationFrame(() => {
+        if (this.#destroyed) return;
+
+        this.#motionReady = true;
+        this.#previousTime = undefined;
+      });
+    });
+  }
+
+  #advanceMotionRamp(elapsedSeconds) {
+    this.#rampElapsed = Math.min(
+      this.#rampElapsed + elapsedSeconds,
+      shanShuiConfig.motionRampSeconds,
+    );
+    const progress = this.#rampElapsed / shanShuiConfig.motionRampSeconds;
+    const easedProgress = progress * progress * (3 - 2 * progress);
+    this.#currentSpeed =
+      this.#rampFromSpeed + (this.#speed - this.#rampFromSpeed) * easedProgress;
+  }
+
+  #hasVisibleCoverage(cursor) {
+    const chunkWidth = this.#generator.chunkWidth;
+    const firstRequiredTile = Math.floor(cursor / chunkWidth);
+    const lastRequiredTile = Math.floor(
+      (cursor + this.#visibleWidth - 0.001) / chunkWidth,
+    );
+
+    for (let index = firstRequiredTile; index <= lastRequiredTile; index += 1) {
+      if (!this.#tiles.has(index)) return false;
+    }
+
+    return true;
+  }
+
+  #hasSavedChunk(tileIndex) {
+    return (
+      this.#savedChunks && tileIndex >= 0 && tileIndex < this.#savedChunks.count
+    );
+  }
+
+  async #loadTile(tileIndex) {
+    if (this.#hasSavedChunk(tileIndex)) {
+      try {
+        return await this.#loadSavedTile(tileIndex);
+      } catch {
+        // A missing or corrupt local asset should fall back to generation.
+      }
+    }
+
+    return this.#generateTile(tileIndex);
+  }
+
+  async #loadSavedTile(tileIndex) {
+    const chunkWidth = this.#generator.chunkWidth;
+    const tileStart = tileIndex * chunkWidth;
+    const tileEnd = tileStart + chunkWidth;
+    const rangeStart = Math.max(0, tileStart - shanShuiConfig.tileGutter);
+    const rangeEnd = tileEnd + shanShuiConfig.tileGutter;
+    const logicalWidth = rangeEnd - rangeStart;
+    const image = await loadImage(
+      `${this.#savedChunks.baseUrl}-${tileIndex}.webp`,
+    );
+    return {
+      image,
+      logicalStart: tileStart,
+      logicalWidth: chunkWidth,
+      sourceX: ((tileStart - rangeStart) / logicalWidth) * image.width,
+      sourceWidth: (chunkWidth / logicalWidth) * image.width,
+    };
+  }
+
   async #generateTile(tileIndex) {
     const chunkWidth = this.#generator.chunkWidth;
     const tileStart = tileIndex * chunkWidth;
     const tileEnd = tileStart + chunkWidth;
-    const rangeStart = Math.max(0, tileStart - TILE_GUTTER);
-    const rangeEnd = tileEnd + TILE_GUTTER;
+    const rangeStart = Math.max(0, tileStart - shanShuiConfig.tileGutter);
+    const rangeEnd = tileEnd + shanShuiConfig.tileGutter;
     const logicalWidth = rangeEnd - rangeStart;
-    const scale = this.#size.height / LOGICAL_HEIGHT;
+    const scale = this.#size.height / shanShuiConfig.logicalHeight;
     const pixelWidth = Math.max(
       Math.ceil(logicalWidth * scale * this.#devicePixelRatio),
       1,
@@ -302,18 +471,18 @@ export class ShanShuiBackdrop {
     // into a bitmap. Otherwise a wide mountain created for the next tile can
     // appear to stop at an already-rasterized boundary.
     this.#generator.ensureRange(
-      Math.max(0, tileStart - GENERATOR_BUFFER),
-      tileEnd + GENERATOR_BUFFER,
+      Math.max(0, tileStart - shanShuiConfig.generatorBuffer),
+      tileEnd + shanShuiConfig.generatorBuffer,
     );
     const sceneMarkup = this.#generator.renderRange(
       tileStart,
       tileEnd,
-      GENERATOR_BUFFER,
+      shanShuiConfig.generatorBuffer,
     );
     const svg = [
       `<svg xmlns="${SVG_NAMESPACE}"`,
       ` width="${pixelWidth}" height="${pixelHeight}"`,
-      ` viewBox="${rangeStart} 0 ${logicalWidth} ${LOGICAL_HEIGHT}"`,
+      ` viewBox="${rangeStart} 0 ${logicalWidth} ${shanShuiConfig.logicalHeight}"`,
       ` preserveAspectRatio="none">`,
       `<g>${sceneMarkup}</g></svg>`,
     ].join("");
@@ -351,28 +520,7 @@ export class ShanShuiBackdrop {
 }
 
 async function rasterizeSvg(blob, pixelWidth, pixelHeight, palette) {
-  let source;
-
-  if ("createImageBitmap" in window) {
-    try {
-      source = await window.createImageBitmap(blob);
-    } catch {
-      // Fall through for SVG decoders that do not accept SVG blobs directly.
-    }
-  }
-
-  if (!source) {
-    const objectUrl = URL.createObjectURL(blob);
-    const image = new Image();
-    try {
-      image.decoding = "async";
-      image.src = objectUrl;
-      await image.decode();
-      source = image;
-    } finally {
-      URL.revokeObjectURL(objectUrl);
-    }
-  }
+  const source = await decodeImage(blob);
 
   const canvas = document.createElement("canvas");
   canvas.width = pixelWidth;
@@ -391,4 +539,38 @@ async function rasterizeSvg(blob, pixelWidth, pixelHeight, palette) {
   }
 
   return canvas;
+}
+
+async function decodeImage(blob) {
+  if ("createImageBitmap" in window) {
+    try {
+      return await window.createImageBitmap(blob);
+    } catch {
+      // Fall through for image decoders that reject this blob type.
+    }
+  }
+
+  const objectUrl = URL.createObjectURL(blob);
+  const image = new Image();
+  try {
+    image.decoding = "async";
+    image.src = objectUrl;
+    await image.decode();
+    return image;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+async function loadImage(source) {
+  const image = new Image();
+  image.decoding = "async";
+  image.src = source;
+  await image.decode();
+
+  if ("createImageBitmap" in window) {
+    return window.createImageBitmap(image);
+  }
+
+  return image;
 }

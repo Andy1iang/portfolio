@@ -15,6 +15,11 @@ export interface ShanShuiBackdropOptions {
   behindTiles?: number;
   maxPixelRatio?: number;
   palette?: ShanShuiPalette;
+  savedChunks?: {
+    baseUrl: string;
+    count: number;
+  };
+  onInitialFrameReady?: () => void;
 }
 
 export class ShanShuiBackdrop {
